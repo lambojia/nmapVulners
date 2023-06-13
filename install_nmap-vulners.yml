@@ -6,8 +6,8 @@
     - stylesheet: "./nmap-bootstrap.xsl"
     - target: ./targets.txt
     - cadence: "25 14 * * *"
-    - recipients: "la.ambojia@gmail.com"
-    - sender: "kartero@mailer.alipyo.com"
+    - recipients: "<email here>"
+    - sender: "<sender here>"
     - installpath: "/usr/local/bin/nmap-vulners/"
     - vulnerspath: "/usr/share/nmap/scripts/vulners.nse"
   tasks:
