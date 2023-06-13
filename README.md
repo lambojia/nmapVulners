@@ -15,5 +15,5 @@ Populate variables as necessary over at install_nmap-vulners.yml
 Scanning targets are configured thru a file targets.txt
 
 # Usage
-ansible-playbook -i <inventory> install_nmap-vulners.yml --extra-vars "host=_target_host_"
+ansible-playbook -i _inventory.yml_ install_nmap-vulners.yml --extra-vars "host=_target_host_"
 
