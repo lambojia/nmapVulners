@@ -1,5 +1,5 @@
 ---
-- hosts: 'test_server'
+- hosts: '{{host}}'
   become: yes
   vars:
     - script: "./nmapVulners.sh"
