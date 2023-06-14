@@ -8,6 +8,7 @@ An ansible playbook and bash script that configures a scheduled nmap vulners sca
 # Configurations.
 Populate variables as necessary over at install_nmap-vulners.yml
 
+	target: ./targets.txt			#modify file as needed.
 	cadence: "0 0 * * *" 			#Schedule in Cron format.
 	recipients: "recipient@example.com"	#Multiple recipients separated by comma can be configured.
 	sender: "sender@example.com" 		#Address to reflect on the From header.
