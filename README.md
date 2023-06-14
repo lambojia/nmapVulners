@@ -42,8 +42,8 @@ Available options:
                     ie: user1@example.com,user2@example.com
 
 -f, --from          [String] Sender Address
-                    default: LAPTOP-COAMLVTF
-
+                    default: $HOSTNAME
+		    
 -d, --destination   (optional) [Filepath] directory to store outputs.
                     default: /tmp
 
