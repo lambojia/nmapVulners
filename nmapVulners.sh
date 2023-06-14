@@ -8,7 +8,7 @@ scriptname=$(basename "${BASH_SOURCE[0]}")
 usage() {
   cat << EOF # remove the space between << and EOF, this is due to web plugin issue
 
-Usage: $scriptname -t target -v vulners -r recipient [-s stylesheet] [-I "0 0 1 * *"]
+Usage: $scriptname -t target -v vulners -r recipient [-s stylesheet] [-f sender] [-I "0 0 1 * *"]
 
 This script executes an Nmap scan using the vulners nse   script
 It outputs an xml file and formats the result using a stylesheet 
@@ -42,7 +42,7 @@ Available options:
 EXAMPLES
 
   $scriptname -t 192.168.1.1 -v vulners.nse -r recipient@example.com -s ./nmap-bootstrap.xsl
-  $scriptname -i inventory.txt -v /usr/share/nmap/scripts/vulners.nse -r recipient@example.com
+  $scriptname -i inventory.txt -v /usr/share/nmap/scripts/vulners.nse -r recipient@example.com -f sender@example.com
   
 EOF
   exit
@@ -146,10 +146,9 @@ parse_params() {
 setup_colors
 parse_params "$@"
 
-#environment checks
+##Checks##
 info "Running environment Checks"
 
-# Check if nmap is installed
 if type nmap >/dev/null 2>&1; then
   success "Nmap check Passed"
 else
@@ -157,7 +156,6 @@ else
   exit 1
 fi
 
-# Check if xsltproc is installed
 if type xsltproc >/dev/null 2>&1; then
   success "Xsltproc check Passed"
 else
@@ -165,7 +163,6 @@ else
   exit 1
 fi
 
-# Check if mail is installed
 if type mail >/dev/null 2>&1; then
   success "Mail check Passed"
 else
@@ -173,9 +170,10 @@ else
   exit 1
 fi
 
+##Parsing##
 OUTPUT="$d/$(date +%Y-%m-%d_%H-%M-%S).nmap-result"
 
-#individual host is set as a targt
+
 if [[ -n "${t}" ]]; then 
   scanner="nmap -sV -T5 --script $v --script-args mincvss=5.0 $t -v -oX $OUTPUT.xml 2>&1" 
   install="bash $script_dir/$scriptname --vulners $v --recipient $r --target $t --from $f --stylesheet $s 2>&1"
@@ -186,18 +184,20 @@ else
   targets=$(cat ${i} | tr '\n' ',')
 fi
 
-#stylesheet is provided
 if [[ -n $s ]]; then
   formatter="xsltproc -o ${OUTPUT}.html ${s} ${OUTPUT}.xml"
 else
   formatter="xsltproc ${OUTPUT}.xml -o ${OUTPUT}.html"
 fi
 
-#sender address set
+#email 
+_subject="\"${scriptname} - $(date)\""
+_to=${r}
+
 if ! [ -z "${f}" ]; then
-  mailer="echo \"Scanned target(s): ${targets}\" | mail -A $OUTPUT.html -a \"FROM:${f}\" -s \"${scriptname} - $(date)\" ${r}"
+  _from="\"FROM:${f}\""
 else
-  mailer="echo \"Scanned target(s): ${targets}\" | mail -A $OUTPUT.html -s \"${scriptname} - $(date)\" ${r}"
+  _from="\"FROM:${HOSTNAME}\""
 fi
 
 if [[ -n "${I}" ]]; then
@@ -207,9 +207,15 @@ if [[ -n "${I}" ]]; then
     err "Installation Failed"
     exit 1
   fi
+
+  mailer="echo \"${scriptname} was installed at ${HOSTNAME}\" | mail -a ${_from} -s \"${scriptname} - Installation\" ${r}"
+  eval $mailer
   exit 0
 fi
 
+mailer="echo \"Scanned target(s): ${targets}\" | mail -A $OUTPUT.html -a ${_from} -s \"${scriptname} - Scan Report\" ${r}"
+
+##Execution##
 info "Scanning Target(s)"
 msg "CMD: ${YELLOW}${scanner}${NOFORMAT}"
 message=$(eval $scanner)

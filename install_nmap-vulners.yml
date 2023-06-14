@@ -4,10 +4,10 @@
   vars:
     - script: "./nmapVulners.sh"
     - stylesheet: "./nmap-bootstrap.xsl"
-    - target: ./targets.txt
-    - cadence: "25 14 * * *"
-    - recipients: "<email here>"
-    - sender: "<sender here>"
+    - target: ./targets.txt #modify targets as needed
+    - cadence: "0 0 * * *" #cron sched here
+    - recipients: "to@example.com" #replace this
+    - sender: "from@example.com" #replace this
     - installpath: "/usr/local/bin/nmap-vulners/"
     - vulnerspath: "/usr/share/nmap/scripts/vulners.nse"
   tasks:

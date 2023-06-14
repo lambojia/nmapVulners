@@ -19,7 +19,7 @@ ansible-playbook -i _inventory.yml_ install_nmap-vulners.yml --extra-vars "host=
 
 # Script Usage
 
-Usage: nmapVulners.sh -t target -v vulners -r recipient [-s stylesheet] [-I "0 0 1 * *"]
+Usage: nmapVulners.sh -t target -v vulners -r recipient [-s stylesheet] [-f sender] [-I "0 0 1 * *"]
 
 This script executes an Nmap scan using the vulners nse   script
 It outputs an xml file and formats the result using a stylesheet
@@ -53,5 +53,5 @@ Available options:
 EXAMPLES
 
   nmapVulners.sh -t 192.168.1.1 -v vulners.nse -r recipient@example.com -s ./nmap-bootstrap.xsl
-  nmapVulners.sh -i inventory.txt -v /usr/share/nmap/scripts/vulners.nse -r recipient@example.com
+  nmapVulners.sh -i inventory.txt -v /usr/share/nmap/scripts/vulners.nse -r recipient@example.com -f sender@example.com
 
