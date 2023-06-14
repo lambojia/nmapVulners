@@ -3,7 +3,7 @@ An ansible playbook and bash script that configures a scheduled nmap vulners sca
 
 1. Ansible playbook is executed.
 2. Scripts and dependencies are staged w/in the target host.
-3. The script installs it self by creating a cron job.
+3. The playbook installs the script by executing the script with the -I paramater.
 
 # Configurations.
 Populate variables as necessary over at install_nmap-vulners.yml
