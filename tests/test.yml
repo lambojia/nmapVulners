@@ -1,5 +1,4 @@
----
 - hosts: localhost
   become: yes
   roles:
-    - { role: nmapvulners , cadence: "0 0 * * *" , recipients: "la.ambojia@gmail.com,alef.ambojia@opensense.com" , sender: "temp@mailer.alipyo.com"}
+    - { role: nmapvulners , cadence: "0 0 * * *" , recipients: "la.ambojia@gmail.com,alef.ambojia@opensense.com" , sender: "postmaster@mailer.alipyo.com"}

@@ -28,8 +28,12 @@ Example Playbook
 
     - hosts: localhost
       become: yes
+      vars
+        - cadence: "0 0 * * *"
+          recipients: "la.ambojia@gmail.com,alef.ambojia@opensense.com"
+          sender: "temp@mailer.alipyo.com"
       roles:
-        - { role: nmapvulners , cadence: "0 0 * * *" , recipients: "la.ambojia@gmail.com,alef.ambojia@opensense.com" , sender: "postmaster@mailer.alipyo.com"}
+        - nmapvulners
 
 License
 -------
