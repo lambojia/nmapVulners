@@ -12,7 +12,9 @@ Role Variables
 --------------
 
 candence:       (required) cron schedule to execute the scan
+
 recipients:     (required) comma delimited list of email recipients. ie: user1@example.com,user2@email.com
+
 sender:         (optional) From header to be used for sending out emails. defaults to the hostname when not supplied.
 
 
