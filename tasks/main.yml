@@ -1,0 +1,71 @@
+- name: 'Check mandatory variables are defined'
+  assert:
+    that:
+      - recipients is defined
+      - cadence is defined
+      - installpath is defined
+      - vulnerspath is defined
+      - script is defined
+      - stylesheet is defined
+
+- name: Install Package Dependencies
+  apt:
+    pkg:
+     - nmap
+     - xsltproc
+     #- mailutils
+    state: latest
+    update_cache: yes
+
+- name: Download Vulners Script
+  get_url:
+    url: "https://raw.githubusercontent.com/vulnersCom/nmap-vulners/master/vulners.nse"
+    dest: "{{vulnerspath}}"
+
+- name: Update Nmap Script DB
+  shell: |
+    nmap --script-updatedb
+
+- name: Create Script Install directory
+  file:
+    path: "{{ installpath }}"
+    state: directory
+
+- name: Build target Inventory
+  template:
+    src: targets.j2
+    dest: "{{installpath}}"
+    owner: root
+    backup: yes
+  register: _target
+
+- name: Copy Stylesheet to Install directory
+  copy:
+    src: "{{stylesheet}}"
+    dest: "{{installpath}}"
+    owner: root
+    group: root
+    mode: 0400
+  register: _stylesheet
+
+- name: Copy Script to Install directory
+  copy:
+    src: "{{ script }}"
+    dest: "{{ installpath }}"
+    owner: root
+    group: root
+    mode: u+rwx,g-wx,o-rwx
+  register: _script
+
+- name: Set Install String
+  set_fact:
+    install_string: bash {{ _script.dest }} -i {{ _target.dest }} -v {{ vulnerspath }} -s {{ _stylesheet.dest }} -r '{{ recipients }}' -f '{{ sender }}' -I '{{ cadence }}'
+
+- name: Install Script
+  shell: "{{install_string}}"
+  register: result
+
+- name: Show full result
+  debug:
+    var: result.stdout
+

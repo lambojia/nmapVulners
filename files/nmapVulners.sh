@@ -52,10 +52,6 @@ quit(){
   die "Missing script arguments. see: [ $scriptname --help ]"
 }
 
-cleanup() {
-  trap - SIGINT SIGTERM ERR EXIT
-  # script cleanup here
-}
 
 setup_colors() {
   if [[ -t 2 ]] && [[ -z "${NO_COLOR-}" ]] && [[ "${TERM-}" != "dumb" ]]; then
@@ -65,27 +61,23 @@ setup_colors() {
   fi
 }
 
-msg() {
-  echo >&2 -e "${1-}"
-}
-
 err() {
-  msg "${RED}${1-}${NOFORMAT}"
+  echo "${1-}" 1>&2;
 }
 
 success() {
-  msg "${GREEN}${1-}${NOFORMAT}"
+  echo -e "${GREEN}${1-}${NOFORMAT}"
 }
 
 info() {
-  msg "${BLUE}${1-}${NOFORMAT}"
+  echo -e "${BLUE}${1-}${NOFORMAT}"
 }
 
 
 die() {
   local msg=$1
   local code=${2-1} # default exit status 1
-  msg "$msg"
+  err "$msg"
   exit "$code"
 }
 
@@ -95,7 +87,7 @@ parse_params() {
   t=""
   v=""
   r=""
-  f=""
+  f=${HOSTNAME}
   s=""
   d="/tmp"
   I=""
@@ -116,13 +108,13 @@ parse_params() {
       r="${1-}"
     ;;
     -f | --from) shift
-      f="${1-}"
+      [ -n "${1}" ] && f=${1}
     ;;
     -s | --stylesheet) shift
       s="${1-}"
     ;;
     -d | --destination) shift
-      d="${1-}"
+      [ -n "${1}" ] && d=${1}
       info "Results will be stored in $d"
     ;;
     -I | --Install) shift
@@ -194,12 +186,6 @@ fi
 _subject="\"${scriptname} - $(date)\""
 _to=${r}
 
-if ! [ -z "${f}" ]; then
-  _from="\"FROM:${f}\""
-else
-  _from="\"FROM:${HOSTNAME}\""
-fi
-
 if [[ -n "${I}" ]]; then
   info "Installing Script as a cron job"
   echo "$I $USER $install" > /etc/cron.d/nmap-vulners
@@ -208,16 +194,16 @@ if [[ -n "${I}" ]]; then
     exit 1
   fi
 
-  mailer="echo \"${scriptname} was installed at ${HOSTNAME}\" | mail -a ${_from} -s \"${scriptname} - Installation\" ${r}"
+  mailer="echo \"${scriptname} was installed at ${HOSTNAME}\" | mail -a \"FROM:${f}\" -s \"${scriptname} - Installation\" ${r}"
   eval $mailer
   exit 0
 fi
 
-mailer="echo \"Scanned target(s): ${targets}\" | mail -A $OUTPUT.html -a ${_from} -s \"${scriptname} - Scan Report\" ${r}"
+mailer="echo \"Scanned target(s): ${targets}\" | mail -A $OUTPUT.html -a \"FROM:${f}\" -s \"${scriptname} - Scan Report\" ${r}"
 
 ##Execution##
 info "Scanning Target(s)"
-msg "CMD: ${YELLOW}${scanner}${NOFORMAT}"
+info "CMD: ${YELLOW}${scanner}${NOFORMAT}"
 message=$(eval $scanner)
 
 if ! [ $? -eq 0 ]; then
@@ -226,7 +212,7 @@ if ! [ $? -eq 0 ]; then
 fi
 
 info "Formatting Output"
-msg "CMD: ${YELLOW}${formatter}${NOFORMAT}"
+info "CMD: ${YELLOW}${formatter}${NOFORMAT}"
 message=$(eval $formatter)
 
 if ! [ $? -eq 0 ]; then
@@ -235,7 +221,7 @@ if ! [ $? -eq 0 ]; then
 fi
 
 info "Mailing to Recipient(s)"
-msg "CMD: ${YELLOW}${mailer}${NOFORMAT}"
+info "CMD: ${YELLOW}${mailer}${NOFORMAT}"
 message=$(eval $mailer)
 
 if ! [ $? -eq 0 ]; then
