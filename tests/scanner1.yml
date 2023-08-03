@@ -1,0 +1,10 @@
+---
+- hosts: scanner1
+  become: yes
+  vars:
+    - cadence: "0 0 * * *"
+      recipients: "alef.ambojia@opensense.com,amit.gupta@opensense.com,monish.bhatia@opensense.com "
+      mincvss: 1.0
+      sender: "nmapvulners@scanner1.opensense.com"
+  roles:
+    - nmapvulners

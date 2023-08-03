@@ -13,6 +13,7 @@
     pkg:
      - nmap
      - xsltproc
+     - s-nail
      #- mailutils
     state: latest
     update_cache: yes
@@ -59,7 +60,7 @@
 
 - name: Set Install String
   set_fact:
-    install_string: bash {{ _script.dest }} -i {{ _target.dest }} -v {{ vulnerspath }} -s {{ _stylesheet.dest }} -r '{{ recipients }}' -f '{{ sender }}' -I '{{ cadence }}'
+    install_string: bash {{ _script.dest }} -i {{ _target.dest }} -v {{ vulnerspath }} -m {{mincvss}} -s {{ _stylesheet.dest }} -r '{{ recipients }}' -f '{{ sender }}' -I '{{ cadence }}'
 
 - name: Install Script
   shell: "{{install_string}}"

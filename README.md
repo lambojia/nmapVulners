@@ -15,8 +15,9 @@ candence:       (required) cron schedule to execute the scan
 
 recipients:     (required) comma delimited list of email recipients. ie: user1@example.com,user2@email.com
 
-sender:         (optional) From header to be used for sending out emails. defaults to the hostname when not supplied.
+sender:         (optional) From header to be used for sending out emails. defaults to the user@hostname when not supplied.
 
+mincvss:        (optional) (decimal value from 1.0 to 10.0) Limit CVEs shown to those with this CVSS score or greater
 
 Dependencies
 ------------
@@ -30,8 +31,9 @@ Example Playbook
       become: yes
       vars
         - cadence: "0 0 * * *"
-          recipients: "la.ambojia@gmail.com,alef.ambojia@opensense.com"
-          sender: "temp@mailer.alipyo.com"
+          recipients: "alef.ambojia@opensense.com"
+          sender: "nmapVulners@scanner1.opensense.com"
+          mincvss: 1.0
       roles:
         - nmapvulners
 

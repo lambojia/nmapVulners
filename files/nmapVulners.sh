@@ -1,5 +1,4 @@
-#!/usr/bin/env bash
-
+#!/bin/bash
 
 script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" &>/dev/null && pwd -P)
 
@@ -31,10 +30,13 @@ Available options:
                     ie: user1@example.com,user2@example.com
 
 -f, --from          [String] Sender Address
-                    default: $HOSTNAME
+                    default: $USER@$HOSTNAME
 
 -d, --destination   (optional) [Filepath] directory to store outputs.
                     default: /tmp
+
+-m, --mincvss       (optional) [decimal 1.0 - 10.0] Limit CVEs shown to those with this CVSS score or greater
+                    default: 5.0
 
 -I, --Install       (optional) [String] Accepts cron schedule expressions. Installs the script as a cron job
                     ie: "0 0 1 * *" (https://crontab.guru/#0_0_1_*_*)
@@ -62,15 +64,15 @@ setup_colors() {
 }
 
 err() {
-  echo "${1-}" 1>&2;
+  echo "$(date -u) ERROR ${1-}" 1>&2;
 }
 
 success() {
-  echo -e "${GREEN}${1-}${NOFORMAT}"
+  echo -e "$(date -u) SUCCESS ${GREEN}${1-}${NOFORMAT}"
 }
 
 info() {
-  echo -e "${BLUE}${1-}${NOFORMAT}"
+  echo -e "$(date -u) INFO ${BLUE}${1-}${NOFORMAT}"
 }
 
 
@@ -87,9 +89,10 @@ parse_params() {
   t=""
   v=""
   r=""
-  f=${HOSTNAME}
+  f="${USER}@${HOSTNAME}"
   s=""
   d="/tmp"
+  m=5.0
   I=""
 
   while :; do
@@ -116,6 +119,9 @@ parse_params() {
     -d | --destination) shift
       [ -n "${1}" ] && d=${1}
       info "Results will be stored in $d"
+    ;;
+    -m | --mincvss) shift
+      [ -n "${1}" ] && m=${1}
     ;;
     -I | --Install) shift
       I="${1-}"
@@ -155,10 +161,10 @@ else
   exit 1
 fi
 
-if type mail >/dev/null 2>&1; then
-  success "Mail check Passed"
+if type s-nail >/dev/null 2>&1; then
+  success "Mail Client check Passed"
 else
-  err "Error mail is not installed."
+  err "Error s-nail is not installed."
   exit 1
 fi
 
@@ -167,13 +173,13 @@ OUTPUT="$d/$(date +%Y-%m-%d_%H-%M-%S).nmap-result"
 
 
 if [[ -n "${t}" ]]; then 
-  scanner="nmap -sV -T5 --script $v --script-args mincvss=5.0 $t -v -oX $OUTPUT.xml 2>&1" 
-  install="bash $script_dir/$scriptname --vulners $v --recipient $r --target $t --from $f --stylesheet $s 2>&1"
+  scanner="nmap -sV -T5 --script $v --script-args mincvss=$m $t -v -oX $OUTPUT.xml 2>&1" 
+  install="bash $script_dir/$scriptname --vulners $v --mincvss $m --recipient $r --target $t --from $f --stylesheet $s >> /var/log/${scriptname}.log 2>&1"
   targets=$t
 else
-  scanner="nmap -sV -T5 --script $v --script-args mincvss=5.0 -iL $i -v -oX $OUTPUT.xml 2>&1" 
-  install="bash $script_dir/$scriptname --vulners $v --recipient $r --inventory $i --from $f --stylesheet $s 2>&1"
-  targets=$(cat ${i} | tr '\n' ',')
+  scanner="nmap -sV -T5 --script $v --script-args mincvss=$m -iL $i -v -oX $OUTPUT.xml 2>&1" 
+  install="bash $script_dir/$scriptname --vulners $v --mincvss $m --recipient $r --inventory $i --from $f --stylesheet $s >> /var/log/${scriptname}.log 2>&1"
+  targets=$(paste -s -d ',' ${i})
 fi
 
 if [[ -n $s ]]; then
@@ -194,12 +200,11 @@ if [[ -n "${I}" ]]; then
     exit 1
   fi
 
-  mailer="echo \"${scriptname} was installed at ${HOSTNAME}\" | mail -a \"FROM:${f}\" -s \"${scriptname} - Installation\" ${r}"
-  eval $mailer
+  mailer="echo \"${scriptname} was installed at ${HOSTNAME}\" | s-nail -r ${f} -s \"${scriptname} - Installation\" ${r}"
   exit 0
 fi
 
-mailer="echo \"Scanned target(s): ${targets}\" | mail -A $OUTPUT.html -a \"FROM:${f}\" -s \"${scriptname} - Scan Report\" ${r}"
+mailer="echo \"Scanned target(s): ${targets}\" | s-nail -a $OUTPUT.html -r ${f} -s \"${scriptname} - Scan Report\" ${r}"
 
 ##Execution##
 info "Scanning Target(s)"
