@@ -174,11 +174,11 @@ OUTPUT="$d/$(date +%Y-%m-%d_%H-%M-%S).nmap-result"
 
 if [[ -n "${t}" ]]; then 
   scanner="nmap -sV -T5 --script $v --script-args mincvss=$m $t -v -oX $OUTPUT.xml 2>&1" 
-  install="bash $script_dir/$scriptname --vulners $v --mincvss $m --recipient $r --target $t --from $f --stylesheet $s >> /var/log/${scriptname}.log 2>&1"
+  install="bash $script_dir/$scriptname --vulners $v --mincvss $m --recipient \"$r\" --target $t --from $f --stylesheet $s >> /var/log/${scriptname}.log 2>&1"
   targets=$t
 else
   scanner="nmap -sV -T5 --script $v --script-args mincvss=$m -iL $i -v -oX $OUTPUT.xml 2>&1" 
-  install="bash $script_dir/$scriptname --vulners $v --mincvss $m --recipient $r --inventory $i --from $f --stylesheet $s >> /var/log/${scriptname}.log 2>&1"
+  install="bash $script_dir/$scriptname --vulners $v --mincvss $m --recipient \"$r\" --inventory $i --from $f --stylesheet $s >> /var/log/${scriptname}.log 2>&1"
   targets=$(paste -s -d ',' ${i})
 fi
 
@@ -187,10 +187,6 @@ if [[ -n $s ]]; then
 else
   formatter="xsltproc ${OUTPUT}.xml -o ${OUTPUT}.html"
 fi
-
-#email 
-_subject="\"${scriptname} - $(date)\""
-_to=${r}
 
 if [[ -n "${I}" ]]; then
   info "Installing Script as a cron job"
@@ -201,6 +197,8 @@ if [[ -n "${I}" ]]; then
   fi
 
   mailer="echo \"${scriptname} was installed at ${HOSTNAME}\" | s-nail -r ${f} -s \"${scriptname} - Installation\" ${r}"
+  message=$(eval $mailer)
+  success $message
   exit 0
 fi
 

@@ -1,8 +1,7 @@
 #cadence: "0 0 * * *" #cron sched here
 #recipients: replace this , comma delimited ie: user1@example.com,user2@email.com
 #mincvss: 5.0
-
-sender: #empty defaults to the hostname
+#sender: #empty defaults to the hostname
 
 installpath: /usr/local/bin/nmap-vulners/
 vulnerspath: /usr/share/nmap/scripts/vulners.nse
