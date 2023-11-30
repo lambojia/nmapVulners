@@ -175,11 +175,11 @@ OUTPUT="$d/$(date +%Y-%m-%d_%H-%M-%S).nmap-result"
 if [[ -n "${t}" ]]; then 
   scanner="nmap -sV -T5 --script $v --script-args mincvss=$m $t -v -oX $OUTPUT.xml 2>&1" 
   install="bash $script_dir/$scriptname --vulners $v --mincvss $m --recipient \"$r\" --target $t --from $f --stylesheet $s >> /var/log/${scriptname}.log 2>&1"
-  targets=$t
+  targets="<table><tr><td>${t}</td></tr></table>"
 else
   scanner="nmap -sV -T5 --script $v --script-args mincvss=$m -iL $i -v -oX $OUTPUT.xml 2>&1" 
   install="bash $script_dir/$scriptname --vulners $v --mincvss $m --recipient \"$r\" --inventory $i --from $f --stylesheet $s >> /var/log/${scriptname}.log 2>&1"
-  targets=$(paste -s -d ',' ${i})
+  targets="<table>$(awk '{ print "<tr><td>"$0"</td></tr>"}' ${i})</table>"
 fi
 
 if [[ -n $s ]]; then
@@ -197,12 +197,12 @@ if [[ -n "${I}" ]]; then
   fi
 
   mailer="echo \"${scriptname} was installed at ${HOSTNAME}\" | s-nail -r ${f} -s \"${scriptname} - Installation\" ${r}"
-  message=$(eval $mailer)
-  success $message
+  #message=$(eval $mailer)
+  #success $message
   exit 0
 fi
 
-mailer="echo \"Scanned target(s): ${targets}\" | s-nail -a $OUTPUT.html -r ${f} -s \"${scriptname} - Scan Report\" ${r}"
+mailer="echo \"<html><h1>Scanned Targets</h1>${targets}</html>\" | s-nail -a $OUTPUT.html -M "text/html" -r ${f} -s \"${scriptname} - Scan Report\" ${r}"
 
 ##Execution##
 info "Scanning Target(s)"

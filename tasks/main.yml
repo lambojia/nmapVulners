@@ -7,6 +7,7 @@
       - vulnerspath is defined
       - script is defined
       - stylesheet is defined
+      - mincvss is defined
 
 - name: Install Package Dependencies
   apt:
@@ -32,13 +33,14 @@
     path: "{{ installpath }}"
     state: directory
 
-- name: Build target Inventory
+- name: Build Inventory
   template:
     src: targets.j2
     dest: "{{installpath}}"
     owner: root
     backup: yes
-  register: _target
+  register: _inventory
+  when: target is undefined
 
 - name: Copy Stylesheet to Install directory
   copy:
@@ -58,9 +60,15 @@
     mode: u+rwx,g-wx,o-rwx
   register: _script
 
-- name: Set Install String
+- name: Set Install String (Inventory)
   set_fact:
-    install_string: bash {{ _script.dest }} -i {{ _target.dest }} -v {{ vulnerspath }} -m {{mincvss}} -s {{ _stylesheet.dest }} -r '{{ recipients }}' -f '{{ sender }}' -I '{{ cadence }}'
+    install_string: bash {{ _script.dest }} -i {{ _inventory.dest }} -v {{ vulnerspath }} -m {{mincvss}} -s {{ _stylesheet.dest }} -r '{{ recipients }}' -f '{{ sender }}' -I '{{ cadence }}'
+  when: target is undefined
+
+- name: Set Install String (Solo)
+  set_fact:
+    install_string: bash {{ _script.dest }} -t {{ target }} -v {{ vulnerspath }} -m {{mincvss}} -s {{ _stylesheet.dest }} -r '{{ recipients }}' -f '{{ sender }}' -I '{{ cadence }}'
+  when: target is defined
 
 - name: Install Script
   shell: "{{install_string}}"

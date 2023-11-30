@@ -1,3 +1,7 @@
 {% for host in groups['all'] %}
-{{ hostvars[host]['host_ip'] }}
+{% if hostvars[host]['host_name'] is defined %}
+{{hostvars[host]['host_name']}}
+{% elif hostvars[host]['host_ip'] is defined %}
+{{hostvars[host]['host_ip']}}
+{% endif %}
 {% endfor %}
